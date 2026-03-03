@@ -1,0 +1,10 @@
+/target/
+/.claude/
+
+.DS_Store
+
+.idea/
+.vscode/
+*.iml
+
+**/*.rs.bk

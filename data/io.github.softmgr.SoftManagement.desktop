@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Software Management
+Comment=Linux software and development environment unified management
+Exec=softmgr
+Icon=io.github.softmgr.SoftManagement
+Categories=System;PackageManager;
+Keywords=software;package;manager;
+Terminal=false
+StartupNotify=true
