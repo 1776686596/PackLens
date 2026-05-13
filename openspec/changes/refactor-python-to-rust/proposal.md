@@ -8,7 +8,7 @@
 - **BREAKING** 删除 `pyproject.toml`（Meson+Python 构建配置），替换为 `Cargo.toml`（Rust 构建配置）
 - **BREAKING** 技术栈变更：Python 3.10+ / PyGObject / Meson → Rust (edition 2021) / gtk4-rs / libadwaita-rs / Cargo
 - 项目结构从 `src/soft_management/*.py` 变更为 `src/` 下的 Rust 模块结构
-- 构建系统从 meson-python 变更为 Cargo，可执行文件名保持 `softmgr`
+- 构建系统从 meson-python 变更为 Cargo，可执行文件名保持 `packlens`
 - 分发方式从 PyPI/pipx 变更为 Cargo install + .deb 打包
 - 所有功能需求（software-panorama、dev-environment、disk-analysis）的行为规格不变，仅实现语言变更
 - 适配器架构从 Python ABC + dataclass 变更为 Rust trait + struct

@@ -10,7 +10,7 @@ mod imp {
 
     #[glib::object_subclass]
     impl ObjectSubclass for Application {
-        const NAME: &'static str = "SoftMgrApplication";
+        const NAME: &'static str = "PackLensApplication";
         type Type = super::Application;
         type ParentType = adw::Application;
     }
@@ -49,7 +49,7 @@ glib::wrapper! {
 impl Application {
     pub fn new() -> Self {
         glib::Object::builder()
-            .property("application-id", "io.github.softmgr.SoftManagement")
+            .property("application-id", "io.github.packlens.PackLens")
             .build()
     }
 }

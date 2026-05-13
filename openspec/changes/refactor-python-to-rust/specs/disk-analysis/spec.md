@@ -29,7 +29,7 @@
 - **THEN** 统计可读文件的大小总和，CacheInfo.requires_sudo 标记为 true，tracing::warn! 记录权限受限信息
 
 ### Requirement: Package Size Ranking
-系统 SHALL 按磁盘占用大小降序排列已安装的软件包，展示占用空间最大的 Top N 个包（默认 N=50，可通过 ~/.config/soft-management/config.toml 的 top_n 配置，范围 10-200，通过 u32::clamp(10, 200) 约束）。排行榜混合所有来源（apt/snap/flatpak），按 Package.size 统一排序。size 为 None 的包排在末尾。排序使用 Vec::sort_by 实现。
+系统 SHALL 按磁盘占用大小降序排列已安装的软件包，展示占用空间最大的 Top N 个包（默认 N=50，可通过 ~/.config/packlens/config.toml 的 top_n 配置，范围 10-200，通过 u32::clamp(10, 200) 约束）。排行榜混合所有来源（apt/snap/flatpak），按 Package.size 统一排序。size 为 None 的包排在末尾。排序使用 Vec::sort_by 实现。
 
 #### Scenario: Show top 50 largest packages
 - **GIVEN** 系统安装了 2680 个 apt 包，配置 top_n=50

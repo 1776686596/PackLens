@@ -4,7 +4,7 @@ set -euo pipefail
 VERSION="${1:-dev}"
 OUT_DIR="${2:-dist}"
 
-BIN_PATH="target/release/softmgr"
+BIN_PATH="target/release/packlens"
 
 if [[ ! -x "$BIN_PATH" ]]; then
   echo "未找到可执行文件：$BIN_PATH" >&2
@@ -17,7 +17,7 @@ mkdir -p "$OUT_DIR"
 ARCH="$(uname -m)"
 VERSION_SAFE="${VERSION//\//_}"
 VERSION_SAFE="${VERSION_SAFE// /_}"
-PKG_NAME="softmgr-${VERSION_SAFE}-linux-${ARCH}"
+PKG_NAME="packlens-${VERSION_SAFE}-linux-${ARCH}"
 STAGE_DIR="${OUT_DIR}/${PKG_NAME}"
 
 if [[ -z "$STAGE_DIR" || "$STAGE_DIR" == "/" ]]; then
@@ -32,11 +32,11 @@ fi
 rm -rf -- "$STAGE_DIR"
 mkdir -p "$STAGE_DIR"
 
-install -m 755 "$BIN_PATH" "${STAGE_DIR}/softmgr"
-install -m 644 data/io.github.softmgr.SoftManagement.desktop \
-  "${STAGE_DIR}/io.github.softmgr.SoftManagement.desktop"
-install -m 644 data/icons/io.github.softmgr.SoftManagement.svg \
-  "${STAGE_DIR}/io.github.softmgr.SoftManagement.svg"
+install -m 755 "$BIN_PATH" "${STAGE_DIR}/packlens"
+install -m 644 data/io.github.packlens.PackLens.desktop \
+  "${STAGE_DIR}/io.github.packlens.PackLens.desktop"
+install -m 644 data/icons/io.github.packlens.PackLens.svg \
+  "${STAGE_DIR}/io.github.packlens.PackLens.svg"
 install -m 755 scripts/install-local.sh "${STAGE_DIR}/install-local.sh"
 install -m 755 scripts/uninstall-local.sh "${STAGE_DIR}/uninstall-local.sh"
 install -m 644 README.md "${STAGE_DIR}/README.md"

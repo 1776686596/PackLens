@@ -31,7 +31,7 @@
 
 安全边界：
 - 系统 SHALL 仅允许结束当前用户（同 UID）拥有的进程；其他 UID 的进程结束按钮禁用并提示“需要管理员权限”。
-- 系统 SHALL 禁止结束应用自身进程（softmgr）。
+- 系统 SHALL 禁止结束应用自身进程（packlens）。
 
 #### Scenario: Terminate a user-owned process
 - **GIVEN** 某进程 PID=1234 且 UID=当前用户
@@ -48,7 +48,7 @@
 - **WHEN** 用户查看该进程条目
 - **THEN** 结束按钮为禁用状态，并显示“需要管理员权限”的提示
 
-#### Scenario: Prevent terminating softmgr
+#### Scenario: Prevent terminating packlens
 - **GIVEN** 进程列表包含应用自身 PID
 - **WHEN** 用户尝试勾选并结束该 PID
 - **THEN** UI 禁止该操作并提示“不可结束自身进程”

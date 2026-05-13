@@ -90,9 +90,9 @@ class CleanupSuggestion:
 ```
 
 ### 分发: PyPI + pipx
-- **决策**: 主要通过 `pipx install soft-management` 分发，辅以 .deb 打包
+- **决策**: 主要通过 `pipx install packlens` 分发，辅以 .deb 打包
 - **理由**: 工具需要访问宿主系统的包管理器数据库，Flatpak 沙箱会阻断这些访问
-- **可执行文件名**: `softmgr`
+- **可执行文件名**: `packlens`
 
 ### UI 结构: 侧边栏导航 + 三视图 + 详情面板
 - **决策**: AdwNavigationSplitView 侧边栏，右侧内容区含三个视图，点击列表项展开详情侧边面板
@@ -158,12 +158,12 @@ class CleanupSuggestion:
 ### 日志
 - **框架**: Python `logging` 模块
 - **默认级别**: INFO（可通过 `--debug` 启动参数切换为 DEBUG）
-- **输出**: stderr（开发时）+ 文件 `~/.local/state/soft-management/softmgr.log`
+- **输出**: stderr（开发时）+ 文件 `~/.local/state/packlens/packlens.log`
 - **轮转**: 单文件 5MB 上限，保留 3 个备份
 - **错误分类**: 用户可见错误通过 AdwBanner/AdwMessageDialog 展示；调试信息仅写入日志文件
 
 ### 配置
-- **格式**: `~/.config/soft-management/config.toml`
+- **格式**: `~/.config/packlens/config.toml`
 - **第一版可配置项**:
   - `show_all_packages = false` (全景视图是否显示全部包)
   - `top_n = 50` (磁盘排行显示数量, 范围 10-200)

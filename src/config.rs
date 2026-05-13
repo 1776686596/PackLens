@@ -62,13 +62,13 @@ fn dirs_path() -> std::path::PathBuf {
 fn dirs_config_dir() -> std::path::PathBuf {
     if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
         let mut p = std::path::PathBuf::from(xdg);
-        p.push("soft-management");
+        p.push("packlens");
         return p;
     }
     if let Ok(home) = std::env::var("HOME") {
         let mut p = std::path::PathBuf::from(home);
-        p.push(".config/soft-management");
+        p.push(".config/packlens");
         return p;
     }
-    std::path::PathBuf::from("/tmp/soft-management")
+    std::path::PathBuf::from("/tmp/packlens")
 }

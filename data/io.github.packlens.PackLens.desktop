@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name[zh_CN]=PackLens
+Name=PackLens
+Comment=Native Linux software inventory, disk cleanup, and process inspection
+Comment[zh_CN]=Linux 软件全景、磁盘清理与进程检查工具
+Exec=packlens
+Icon=io.github.packlens.PackLens
+Categories=System;PackageManager;
+Keywords=software;package;manager;cleanup;disk;process;
+Terminal=false
+StartupNotify=true

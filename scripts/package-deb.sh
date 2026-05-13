@@ -4,9 +4,9 @@ set -euo pipefail
 VERSION_RAW="${1:-dev}"
 OUT_DIR="${2:-dist}"
 
-BIN_PATH="target/release/softmgr"
-DESKTOP_FILE="data/io.github.softmgr.SoftManagement.desktop"
-ICON_FILE="data/icons/io.github.softmgr.SoftManagement.svg"
+BIN_PATH="target/release/packlens"
+DESKTOP_FILE="data/io.github.packlens.PackLens.desktop"
+ICON_FILE="data/icons/io.github.packlens.PackLens.svg"
 
 if [[ ! -x "$BIN_PATH" ]]; then
   echo "未找到可执行文件：$BIN_PATH" >&2
@@ -43,7 +43,7 @@ if [[ -z "$ARCH" ]]; then
   esac
 fi
 
-PKG_NAME="softmgr"
+PKG_NAME="packlens"
 STAGE_DIR="${OUT_DIR}/deb_${PKG_NAME}_${VERSION}_${ARCH}"
 DEB_PATH="${OUT_DIR}/${PKG_NAME}_${VERSION}_${ARCH}.deb"
 
@@ -62,11 +62,11 @@ mkdir -p "$STAGE_DIR/usr/bin"
 mkdir -p "$STAGE_DIR/usr/share/applications"
 mkdir -p "$STAGE_DIR/usr/share/icons/hicolor/scalable/apps"
 
-install -m 755 "$BIN_PATH" "$STAGE_DIR/usr/bin/softmgr"
+install -m 755 "$BIN_PATH" "$STAGE_DIR/usr/bin/packlens"
 install -m 644 "$DESKTOP_FILE" \
-  "$STAGE_DIR/usr/share/applications/io.github.softmgr.SoftManagement.desktop"
+  "$STAGE_DIR/usr/share/applications/io.github.packlens.PackLens.desktop"
 install -m 644 "$ICON_FILE" \
-  "$STAGE_DIR/usr/share/icons/hicolor/scalable/apps/io.github.softmgr.SoftManagement.svg"
+  "$STAGE_DIR/usr/share/icons/hicolor/scalable/apps/io.github.packlens.PackLens.svg"
 
 cat >"$STAGE_DIR/DEBIAN/control" <<EOF
 Package: ${PKG_NAME}
@@ -74,10 +74,12 @@ Version: ${VERSION}
 Section: utils
 Priority: optional
 Architecture: ${ARCH}
-Maintainer: softmgr contributors <noreply@github.com>
+Maintainer: PackLens contributors <noreply@github.com>
 Depends: libgtk-4-1 (>= 4.12), libadwaita-1-0 (>= 1.4), xdg-utils
-Description: Linux software and development environment unified management tool
- A native GNOME/GTK4 app that unifies software discovery and dev-environment insights.
+Conflicts: softmgr
+Replaces: softmgr
+Description: Native Linux software inventory, disk cleanup, and process inspection tool
+ A native GNOME/GTK4 app for package discovery, cleanup, disk analysis, and process inspection.
 EOF
 
 dpkg-deb --build --root-owner-group "$STAGE_DIR" "$DEB_PATH"

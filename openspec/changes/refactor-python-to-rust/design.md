@@ -1,5 +1,5 @@
 ## Context
-项目 soft-management 是一个 Linux 软件与开发环境统一管理桌面应用，当前使用 Python + GTK4/libadwaita (PyGObject) 技术栈，已完成项目骨架（入口、窗口框架、数据模型、配置、日志），三个核心功能视图尚为占位符。用户决定在功能实现之前将技术栈迁移到 Rust + gtk4-rs，以获得更好的性能、类型安全和长期维护性。
+项目 packlens 是一个 Linux 软件与开发环境统一管理桌面应用，当前使用 Python + GTK4/libadwaita (PyGObject) 技术栈，已完成项目骨架（入口、窗口框架、数据模型、配置、日志），三个核心功能视图尚为占位符。用户决定在功能实现之前将技术栈迁移到 Rust + gtk4-rs，以获得更好的性能、类型安全和长期维护性。
 
 目标平台：Ubuntu 24.04+ GNOME Wayland 环境。系统存在 apt/snap/flatpak 等包管理器、nvm/rustup/conda 等版本管理器、Docker 容器生态。
 
@@ -9,7 +9,7 @@
   - 利用 Rust 类型系统提升代码安全性（消除运行时类型错误）
   - 利用编译型语言提升扫描性能（尤其是 2680+ apt 包的解析和磁盘递归 stat）
   - 保持 GNOME 原生体验（gtk4-rs + libadwaita-rs）
-  - 保持可执行文件名 `softmgr` 不变
+  - 保持可执行文件名 `packlens` 不变
 - Non-Goals:
   - 不改变任何功能需求或用户可见行为
   - 不增加跨平台支持
@@ -196,23 +196,23 @@ docker system prune -f
 - **默认级别**: INFO（`--debug` 切换为 DEBUG）
 - **stderr 输出**: `tracing_subscriber::fmt::layer()` 输出到 stderr
 - **文件输出**: `tracing_appender::rolling::RollingFileAppender`
-  - 路径: `~/.local/state/soft-management/softmgr.log`
+  - 路径: `~/.local/state/packlens/packlens.log`
   - 轮转策略: 按大小轮转，单文件 5MB 上限，保留 3 个备份
   - 注意: tracing-appender 原生仅支持按时间轮转，按大小轮转需使用 `tracing-appender` 的 `non_blocking` writer 配合自定义逻辑，或退回使用 `file-rotate` crate
 - **格式**: `{timestamp} {level} {target}: {message}`
 
 ### 配置: toml crate + serde
-- **配置路径**: `~/.config/soft-management/config.toml`
+- **配置路径**: `~/.config/packlens/config.toml`
 - **配置项**: `show_all_packages: bool` (默认 false) + `top_n: u32` (默认 50, clamp 到 10-200)
 - **缺失文件**: 使用默认值，`debug!` 记录
 - **解析失败**: 使用默认值，`warn!` 记录
 
 ### 分发与资源安装
-- **cargo install**: 仅安装二进制到 `~/.cargo/bin/softmgr`，不安装 .desktop/图标
+- **cargo install**: 仅安装二进制到 `~/.cargo/bin/packlens`，不安装 .desktop/图标
 - **.deb 打包**: 使用 `cargo-deb`
-  - 二进制: `/usr/bin/softmgr`
-  - .desktop: `/usr/share/applications/io.github.softmgr.SoftManagement.desktop`
-  - 图标: `/usr/share/icons/hicolor/scalable/apps/io.github.softmgr.SoftManagement.svg`
+  - 二进制: `/usr/bin/packlens`
+  - .desktop: `/usr/share/applications/io.github.packlens.PackLens.desktop`
+  - 图标: `/usr/share/icons/hicolor/scalable/apps/io.github.packlens.PackLens.svg`
 - **手动安装资源**: README 中提供 `install -D` 命令将 data/ 下资源复制到 XDG 标准路径
 
 ### 适配器架构: Rust 原生 async trait
@@ -349,9 +349,9 @@ soft_management/
 │       ├── devenv.rs           # 开发环境视图
 │       └── disk.rs             # 磁盘分析视图
 ├── data/
-│   ├── io.github.softmgr.SoftManagement.desktop
+│   ├── io.github.packlens.PackLens.desktop
 │   └── icons/
-│       └── io.github.softmgr.SoftManagement.svg
+│       └── io.github.packlens.PackLens.svg
 └── tests/
     ├── adapter_parsing.rs
     └── proptest_invariants.rs

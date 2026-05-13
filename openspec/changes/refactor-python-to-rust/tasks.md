@@ -1,14 +1,14 @@
 ## 1. 清理与初始化
 - [x] 1.1 删除全部 Python 源码（src/soft_management/*.py）和 pyproject.toml
-- [x] 1.2 创建 Cargo.toml（完整依赖清单见 design.md，edition=2021，name="soft-management"，[[bin]] name="softmgr"）
+- [x] 1.2 创建 Cargo.toml（完整依赖清单见 design.md，edition=2021，name="packlens"，[[bin]] name="packlens"）
 - [x] 1.3 创建 rust-toolchain.toml（channel = "1.80"）
 - [x] 1.4 创建 src/main.rs 入口：创建全局 tokio Runtime 单例，启动 AdwApplication
 - [x] 1.5 创建 src/runtime.rs：全局 tokio Runtime（once_cell::sync::Lazy<Runtime>），提供 spawn 辅助函数
 - [x] 1.6 创建 src/error.rs：AppError / AdapterError / ConfigError（thiserror 派生，字段与 design.md 一致）
 - [x] 1.7 创建 src/app.rs：AdwApplication（ObjectSubclass 派生宏），注册 quit action + Ctrl+Q 快捷键
-- [x] 1.8 创建 src/config.rs：serde + toml 加载 ~/.config/soft-management/config.toml，缺失/解析失败→默认值+warn!
+- [x] 1.8 创建 src/config.rs：serde + toml 加载 ~/.config/packlens/config.toml，缺失/解析失败→默认值+warn!
 - [x] 1.9 创建 src/subprocess.rs：run_command(cmd, args, timeout_secs) 工具函数，前置 LC_ALL=C LANG=C，String::from_utf8_lossy 输出，超时→AdapterError::Timeout，非零退出→AdapterError::CommandFailed
-- [x] 1.10 实现日志初始化（tracing + tracing-subscriber + tracing-appender，INFO 默认，--debug 切 DEBUG，文件 ~/.local/state/soft-management/softmgr.log）
+- [x] 1.10 实现日志初始化（tracing + tracing-subscriber + tracing-appender，INFO 默认，--debug 切 DEBUG，文件 ~/.local/state/packlens/packlens.log）
 - [x] 1.11 验证: `cargo run` 启动显示空白主窗口
 
 ## 2. 主窗口与 tokio-glib 桥接基建
@@ -72,5 +72,5 @@
 - [ ] 8.2 实现 i18n 基础设施（gettext-rs, po/ 目录, 中文翻译文件）
 - [x] 8.3 创建 data/ 目录（.desktop 文件, 应用图标 SVG）
 - [x] 8.4 更新 openspec/project.md 技术栈描述（Python→Rust）
-- [ ] 8.5 验证: `cargo install --path .` 可安装并通过 `softmgr` 命令启动完整应用
+- [ ] 8.5 验证: `cargo install --path .` 可安装并通过 `packlens` 命令启动完整应用
 - [ ] 8.6 运行 `openspec validate refactor-python-to-rust --strict --no-interactive` 确认规范通过

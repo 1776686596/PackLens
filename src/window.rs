@@ -27,7 +27,7 @@ mod imp {
 
     #[glib::object_subclass]
     impl ObjectSubclass for Window {
-        const NAME: &'static str = "SoftMgrWindow";
+        const NAME: &'static str = "PackLensWindow";
         type Type = super::Window;
         type ParentType = adw::ApplicationWindow;
     }
@@ -36,7 +36,7 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
             let window = self.obj();
-            window.set_title(Some("Software Management"));
+            window.set_title(Some("PackLens"));
             window.set_default_size(960, 640);
             window.setup_ui();
         }
@@ -216,7 +216,7 @@ fn apply_language(
     content_stack: &gtk::Stack,
     scan_token: &Rc<RefCell<Option<tokio_util::sync::CancellationToken>>>,
 ) {
-    let title = pick(lang, "软件管理", "Software Management");
+    let title = "PackLens";
     window.set_title(Some(title));
     window_title.set_label(title);
     lang_label.set_label(pick(lang, "语言", "Language"));

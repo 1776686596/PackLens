@@ -1,12 +1,12 @@
 [package]
-name = "soft-management"
+name = "packlens"
 version = "0.1.2"
 edition = "2021"
-description = "Linux software and development environment unified management tool"
+description = "Native Linux software inventory, disk cleanup, and process inspection tool"
 license = "GPL-3.0-or-later"
 
 [[bin]]
-name = "softmgr"
+name = "packlens"
 path = "src/main.rs"
 
 [dependencies]

@@ -1,10 +1,10 @@
 ## 1. 项目脚手架
-- [ ] 1.1 创建 pyproject.toml（PEP 621，依赖: PyGObject>=3.46, 构建: meson-python, entry_points: softmgr）
+- [ ] 1.1 创建 pyproject.toml（PEP 621，依赖: PyGObject>=3.46, 构建: meson-python, entry_points: packlens）
 - [ ] 1.2 创建 src/soft_management/ 包结构（__init__.py, __main__.py, app.py, window.py, models.py）
 - [ ] 1.3 实现 GtkApplication 入口（AdwApplication）与主窗口（AdwApplicationWindow + AdwNavigationSplitView 三视图侧边栏）
 - [ ] 1.4 实现启动前依赖检测（检查 gi + Gtk 4.12+ + Adw 1.4+，缺失时打印安装指引并退出）
-- [ ] 1.5 实现日志初始化（logging 模块，INFO 默认，--debug 切 DEBUG，文件 ~/.local/state/soft-management/softmgr.log，5MB 轮转保留 3 份）
-- [ ] 1.6 实现配置加载（~/.config/soft-management/config.toml，show_all_packages=false, top_n=50）
+- [ ] 1.5 实现日志初始化（logging 模块，INFO 默认，--debug 切 DEBUG，文件 ~/.local/state/packlens/packlens.log，5MB 轮转保留 3 份）
+- [ ] 1.6 实现配置加载（~/.config/packlens/config.toml，show_all_packages=false, top_n=50）
 - [ ] 1.7 验证: `python3 -m soft_management` 启动显示空白主窗口，侧边栏含三个导航项
 
 ## 2. 数据模型与适配器基础架构
@@ -60,4 +60,4 @@
 - [ ] 7.1 配置 ruff linter + pyproject.toml [tool.ruff]
 - [ ] 7.2 实现 i18n 基础设施（gettext, po/ 目录, 中文翻译文件）
 - [ ] 7.3 创建 data/ 目录（.desktop 文件, 应用图标, gschema）
-- [ ] 7.4 验证: `pipx install .` 可安装并通过 `softmgr` 命令启动完整应用
+- [ ] 7.4 验证: `pipx install .` 可安装并通过 `packlens` 命令启动完整应用
