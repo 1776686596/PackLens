@@ -61,8 +61,8 @@ PackLens 是一个 Linux 原生 GUI 工具。它把常见软件来源（apt/snap
 项目会在 GitHub Releases 提供 Linux 预构建包（`.tar.gz`）。下载后解压并执行本地安装脚本：
 
 ```bash
-tar -xzf packlens-<版本>-linux-<架构>.tar.gz
-cd packlens-<版本>-linux-<架构>
+tar -xzf PackLens-<版本>-linux-<架构>.tar.gz
+cd PackLens-<版本>-linux-<架构>
 ./install-local.sh
 packlens
 ```

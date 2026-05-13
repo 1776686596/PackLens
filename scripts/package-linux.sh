@@ -17,7 +17,7 @@ mkdir -p "$OUT_DIR"
 ARCH="$(uname -m)"
 VERSION_SAFE="${VERSION//\//_}"
 VERSION_SAFE="${VERSION_SAFE// /_}"
-PKG_NAME="packlens-${VERSION_SAFE}-linux-${ARCH}"
+PKG_NAME="PackLens-${VERSION_SAFE}-linux-${ARCH}"
 STAGE_DIR="${OUT_DIR}/${PKG_NAME}"
 
 if [[ -z "$STAGE_DIR" || "$STAGE_DIR" == "/" ]]; then
