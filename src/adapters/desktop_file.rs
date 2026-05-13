@@ -340,9 +340,14 @@ fn build_manual_uninstall_command(
         let quoted = format!("'{}'", shell_quote_single(file));
         let use_sudo = manual_path_requires_sudo(file);
         let sudo_prefix = if use_sudo { "sudo " } else { "" };
-        let msg_remove = format!("'{}'", shell_quote_single(&format!("[manual] remove file: {file}")));
-        let msg_skip =
-            format!("'{}'", shell_quote_single(&format!("[manual] skip missing file: {file}")));
+        let msg_remove = format!(
+            "'{}'",
+            shell_quote_single(&format!("[manual] remove file: {file}"))
+        );
+        let msg_skip = format!(
+            "'{}'",
+            shell_quote_single(&format!("[manual] skip missing file: {file}"))
+        );
         commands.push(format!(
             "if {sudo_prefix}test -e {quoted}; then echo {msg_remove} && {sudo_prefix}ls -ld {quoted} && {sudo_prefix}rm -f {quoted}; else echo {msg_skip}; fi"
         ));
@@ -351,9 +356,14 @@ fn build_manual_uninstall_command(
         let quoted = format!("'{}'", shell_quote_single(dir));
         let use_sudo = manual_path_requires_sudo(dir);
         let sudo_prefix = if use_sudo { "sudo " } else { "" };
-        let msg_remove = format!("'{}'", shell_quote_single(&format!("[manual] remove dir: {dir}")));
-        let msg_skip =
-            format!("'{}'", shell_quote_single(&format!("[manual] skip missing dir: {dir}")));
+        let msg_remove = format!(
+            "'{}'",
+            shell_quote_single(&format!("[manual] remove dir: {dir}"))
+        );
+        let msg_skip = format!(
+            "'{}'",
+            shell_quote_single(&format!("[manual] skip missing dir: {dir}"))
+        );
         commands.push(format!(
             "if {sudo_prefix}test -d {quoted}; then echo {msg_remove} && {sudo_prefix}ls -ld {quoted} && {sudo_prefix}rm -rf {quoted}; else echo {msg_skip}; fi"
         ));
@@ -382,19 +392,12 @@ fn manual_path_requires_sudo(path: &str) -> bool {
 
     // 系统目录一般需要管理员权限删除。
     let system_prefixes = [
-        "/usr/",
-        "/opt/",
-        "/etc/",
-        "/var/",
-        "/bin/",
-        "/sbin/",
-        "/lib/",
-        "/lib64/",
-        "/snap/",
-        "/srv/",
-        "/root/",
+        "/usr/", "/opt/", "/etc/", "/var/", "/bin/", "/sbin/", "/lib/", "/lib64/", "/snap/",
+        "/srv/", "/root/",
     ];
-    system_prefixes.iter().any(|prefix| path.starts_with(prefix))
+    system_prefixes
+        .iter()
+        .any(|prefix| path.starts_with(prefix))
 }
 
 fn parse_exec_tokens(exec_raw: &str) -> Vec<String> {

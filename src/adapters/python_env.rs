@@ -262,14 +262,12 @@ black 24.2.0
 "#;
 
         let pkgs = parse_uv_tool_list(raw);
-        assert!(
-            pkgs.iter()
-                .any(|p| p.manager == "uv" && p.name == "ruff" && p.version == "0.6.0")
-        );
-        assert!(
-            pkgs.iter()
-                .any(|p| p.manager == "uv" && p.name == "black" && p.version == "24.2.0")
-        );
+        assert!(pkgs
+            .iter()
+            .any(|p| p.manager == "uv" && p.name == "ruff" && p.version == "0.6.0"));
+        assert!(pkgs
+            .iter()
+            .any(|p| p.manager == "uv" && p.name == "black" && p.version == "24.2.0"));
         assert!(!pkgs.iter().any(|p| p.name.eq_ignore_ascii_case("tool")));
     }
 
@@ -290,10 +288,9 @@ black 24.2.0
 "#;
 
         let pkgs = parse_pipx_list_json(raw);
-        assert!(
-            pkgs.iter()
-                .any(|p| p.manager == "pipx" && p.name == "black" && p.version == "24.2.0")
-        );
+        assert!(pkgs
+            .iter()
+            .any(|p| p.manager == "pipx" && p.name == "black" && p.version == "24.2.0"));
     }
 
     #[test]

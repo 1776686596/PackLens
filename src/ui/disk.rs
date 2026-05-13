@@ -821,7 +821,11 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                 };
 
                 let row = adw::ActionRow::builder()
-                    .title(glib::markup_escape_text(&format!("{}. {}", idx + 1, item.name)))
+                    .title(glib::markup_escape_text(&format!(
+                        "{}. {}",
+                        idx + 1,
+                        item.name
+                    )))
                     .subtitle(glib::markup_escape_text(&format!(
                         "{} · {}",
                         kind,
@@ -1172,14 +1176,14 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                         .collect();
 
                     let mut root_labels = root_labels;
-                    root_labels
-                        .entry("/".to_string())
-                        .or_insert_with(|| pick(lang, "完整文件系统", "Full Filesystem").to_string());
+                    root_labels.entry("/".to_string()).or_insert_with(|| {
+                        pick(lang, "完整文件系统", "Full Filesystem").to_string()
+                    });
                     if let Ok(home) = std::env::var("HOME") {
                         let home_key = normalize_path(&home);
-                        root_labels
-                            .entry(home_key)
-                            .or_insert_with(|| pick(lang, "用户主目录", "Home Directory").to_string());
+                        root_labels.entry(home_key).or_insert_with(|| {
+                            pick(lang, "用户主目录", "Home Directory").to_string()
+                        });
                     }
 
                     if snapshot.folder_usage.values().all(Vec::is_empty) {
@@ -2144,10 +2148,7 @@ fn format_duration_ms(ms: u64) -> String {
 
 fn format_disk_progress(progress: &disk::DiskProgress, lang: Language) -> String {
     let elapsed = format_duration_ms(progress.elapsed_ms);
-    let eta = progress
-        .eta_ms
-        .filter(|v| *v > 0)
-        .map(format_duration_ms);
+    let eta = progress.eta_ms.filter(|v| *v > 0).map(format_duration_ms);
 
     match progress.stage {
         disk::DiskStage::ScanningCaches => {

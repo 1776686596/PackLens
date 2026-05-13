@@ -13,6 +13,13 @@ use crate::subprocess::run_command;
 
 static SCAN_SEQ: AtomicU64 = AtomicU64::new(1);
 
+#[derive(Clone, Default)]
+struct CleanupRunPlan {
+    targets: Vec<CleanupSuggestion>,
+    skipped_sudo: usize,
+    moderate: usize,
+}
+
 pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw::NavigationPage {
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
@@ -140,7 +147,7 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
     let sources_seen = Rc::new(RefCell::new(HashSet::<String>::new()));
     let suggestions_state = Rc::new(RefCell::new(Vec::<CleanupSuggestion>::new()));
     let selection_state = Rc::new(RefCell::new(HashSet::<String>::new()));
-    let pending_run = Rc::new(RefCell::new(Vec::<CleanupSuggestion>::new()));
+    let pending_run = Rc::new(RefCell::new(CleanupRunPlan::default()));
 
     let rebuild_list: Rc<dyn Fn()> = Rc::new({
         let list = list.clone();
@@ -233,7 +240,7 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
         move || {
             banner.set_revealed(false);
             confirm_revealer.set_reveal_child(false);
-            pending_run.borrow_mut().clear();
+            *pending_run.borrow_mut() = CleanupRunPlan::default();
             selection_state.borrow_mut().clear();
             suggestions_state.borrow_mut().clear();
             sources_seen.borrow_mut().clear();
@@ -272,8 +279,8 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
         let start_scan = start_scan.clone();
         move |_| {
             confirm_revealer.set_reveal_child(false);
-            let targets = pending_run.borrow().clone();
-            if targets.is_empty() {
+            let plan = pending_run.borrow().clone();
+            if plan.targets.is_empty() {
                 return;
             }
 
@@ -281,7 +288,7 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
 
             let (run_tx, run_rx) = async_channel::bounded::<RunEvent>(32);
             runtime::spawn(async move {
-                run_selected_cleanups(run_tx, targets, lang).await;
+                run_selected_cleanups(run_tx, plan, lang).await;
             });
 
             let banner = banner.clone();
@@ -344,7 +351,11 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                 banner.set_title(pick(lang, "已复制到剪贴板", "Copied to clipboard"));
                 banner.set_revealed(true);
             } else {
-                banner.set_title(pick(lang, "复制失败：无可用显示", "Copy failed: no display"));
+                banner.set_title(pick(
+                    lang,
+                    "复制失败：无可用显示",
+                    "Copy failed: no display",
+                ));
                 banner.set_revealed(true);
             }
         }
@@ -365,11 +376,10 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                 return;
             }
 
-            let (to_run, skipped_sudo, moderate) = split_run_targets(&selected);
-            pending_run.borrow_mut().clear();
-            pending_run.borrow_mut().extend(to_run);
+            let plan = plan_cleanup_run(&selected);
+            *pending_run.borrow_mut() = plan.clone();
 
-            if pending_run.borrow().is_empty() {
+            if plan.targets.is_empty() {
                 banner.set_title(pick(
                     lang,
                     "所选项目需要 sudo，建议复制命令到终端执行",
@@ -379,12 +389,8 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                 return;
             }
 
-            let total_bytes: u64 = pending_run
-                .borrow()
-                .iter()
-                .map(|s| s.estimated_bytes)
-                .sum();
-            let count = pending_run.borrow().len();
+            let total_bytes: u64 = plan.targets.iter().map(|s| s.estimated_bytes).sum();
+            let count = plan.targets.len();
 
             let mut info = match lang {
                 Language::ZhCn => format!(
@@ -396,16 +402,16 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                     format_size(total_bytes)
                 ),
             };
-            if moderate > 0 {
+            if plan.moderate > 0 {
                 info.push_str(&match lang {
-                    Language::ZhCn => format!(" · 中等风险 {moderate}"),
-                    Language::En => format!(" · moderate {moderate}"),
+                    Language::ZhCn => format!(" · 中等风险 {}", plan.moderate),
+                    Language::En => format!(" · moderate {}", plan.moderate),
                 });
             }
-            if skipped_sudo > 0 {
+            if plan.skipped_sudo > 0 {
                 info.push_str(&match lang {
-                    Language::ZhCn => format!(" · 需 sudo 将跳过 {skipped_sudo}"),
-                    Language::En => format!(" · skipped sudo {skipped_sudo}"),
+                    Language::ZhCn => format!(" · 需 sudo 将跳过 {}", plan.skipped_sudo),
+                    Language::En => format!(" · skipped sudo {}", plan.skipped_sudo),
                 });
             }
 
@@ -434,7 +440,9 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                 let total = event.total_sources.max(1);
                 let done = sources_seen.borrow().len() >= total;
                 progress_badge.set_label(&match lang {
-                    Language::ZhCn => format!("扫描中（{}/{}）", sources_seen.borrow().len(), total),
+                    Language::ZhCn => {
+                        format!("扫描中（{}/{}）", sources_seen.borrow().len(), total)
+                    }
                     Language::En => format!("Scanning ({}/{})", sources_seen.borrow().len(), total),
                 });
 
@@ -458,8 +466,14 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
 }
 
 enum RunEvent {
-    Message { text: String },
-    Progress { current: usize, total: usize, cmd: String },
+    Message {
+        text: String,
+    },
+    Progress {
+        current: usize,
+        total: usize,
+        cmd: String,
+    },
     Finished {
         ok: usize,
         failed: usize,
@@ -469,18 +483,17 @@ enum RunEvent {
 
 async fn run_selected_cleanups(
     tx: async_channel::Sender<RunEvent>,
-    selected: Vec<CleanupSuggestion>,
+    plan: CleanupRunPlan,
     lang: Language,
 ) {
-    let (to_run, skipped_sudo, _) = split_run_targets(&selected);
-    let total = to_run.len();
+    let total = plan.targets.len();
 
     if total == 0 {
         let _ = tx
             .send(RunEvent::Finished {
                 ok: 0,
                 failed: 0,
-                skipped_sudo,
+                skipped_sudo: plan.skipped_sudo,
             })
             .await;
         return;
@@ -489,7 +502,7 @@ async fn run_selected_cleanups(
     let mut ok = 0usize;
     let mut failed = 0usize;
 
-    for (idx, s) in to_run.iter().enumerate() {
+    for (idx, s) in plan.targets.iter().enumerate() {
         let current = idx + 1;
         let cmd = s.command.clone();
         let _ = tx
@@ -525,7 +538,7 @@ async fn run_selected_cleanups(
         .send(RunEvent::Finished {
             ok,
             failed,
-            skipped_sudo,
+            skipped_sudo: plan.skipped_sudo,
         })
         .await;
 }
@@ -560,6 +573,15 @@ fn split_run_targets(selected: &[CleanupSuggestion]) -> (Vec<CleanupSuggestion>,
     (to_run, skipped_sudo, moderate)
 }
 
+fn plan_cleanup_run(selected: &[CleanupSuggestion]) -> CleanupRunPlan {
+    let (targets, skipped_sudo, moderate) = split_run_targets(selected);
+    CleanupRunPlan {
+        targets,
+        skipped_sudo,
+        moderate,
+    }
+}
+
 fn update_summary(
     summary_label: &gtk::Label,
     copy_btn: &gtk::Button,
@@ -584,8 +606,14 @@ fn update_summary(
     }
 
     let label = match lang {
-        Language::ZhCn => format!("已选择 {count} 项（需 sudo {sudo}）· 预计释放 {}", format_size(bytes)),
-        Language::En => format!("Selected {count} (sudo {sudo}) · est. free {}", format_size(bytes)),
+        Language::ZhCn => format!(
+            "已选择 {count} 项（需 sudo {sudo}）· 预计释放 {}",
+            format_size(bytes)
+        ),
+        Language::En => format!(
+            "Selected {count} (sudo {sudo}) · est. free {}",
+            format_size(bytes)
+        ),
     };
     summary_label.set_label(&label);
     let has_any = count > 0;
@@ -606,10 +634,15 @@ fn suggestion_subtitle(s: &CleanupSuggestion, lang: Language) -> String {
         pick(lang, "无需 sudo", "No sudo")
     };
     let mut subtitle = match lang {
-        Language::ZhCn => format!("预计释放 {} · {risk} · {sudo}", format_size(s.estimated_bytes)),
-        Language::En => format!("Est. free {} · {risk} · {sudo}", format_size(s.estimated_bytes)),
-    }
-    ;
+        Language::ZhCn => format!(
+            "预计释放 {} · {risk} · {sudo}",
+            format_size(s.estimated_bytes)
+        ),
+        Language::En => format!(
+            "Est. free {} · {risk} · {sudo}",
+            format_size(s.estimated_bytes)
+        ),
+    };
 
     let cmd_text = if s.requires_sudo {
         format!("sudo {}", s.command)
@@ -622,7 +655,12 @@ fn suggestion_subtitle(s: &CleanupSuggestion, lang: Language) -> String {
     });
 
     if !s.targets.is_empty() {
-        let target_text = s.targets.iter().map(|t| display_path(t)).collect::<Vec<_>>().join(", ");
+        let target_text = s
+            .targets
+            .iter()
+            .map(|t| display_path(t))
+            .collect::<Vec<_>>()
+            .join(", ");
         subtitle.push_str(&match lang {
             Language::ZhCn => format!(" · 清理：{target_text}"),
             Language::En => format!(" · Target: {target_text}"),
@@ -825,6 +863,37 @@ mod tests {
             risk_level: RiskLevel::Safe,
         }]));
         let selection_state = Rc::new(RefCell::new(HashSet::from(["apt clean".to_string()])));
-        assert_eq!(build_copy_text(&suggestions_state, &selection_state), "sudo apt clean");
+        assert_eq!(
+            build_copy_text(&suggestions_state, &selection_state),
+            "sudo apt clean"
+        );
+    }
+
+    #[test]
+    fn plan_cleanup_run_keeps_skipped_sudo_count() {
+        let items = vec![
+            CleanupSuggestion {
+                description: "safe".into(),
+                targets: Vec::new(),
+                estimated_bytes: 2,
+                command: "pip3 cache purge".into(),
+                requires_sudo: false,
+                risk_level: RiskLevel::Safe,
+            },
+            CleanupSuggestion {
+                description: "sudo".into(),
+                targets: Vec::new(),
+                estimated_bytes: 4,
+                command: "apt clean".into(),
+                requires_sudo: true,
+                risk_level: RiskLevel::Moderate,
+            },
+        ];
+
+        let plan = plan_cleanup_run(&items);
+        assert_eq!(plan.targets.len(), 1);
+        assert_eq!(plan.targets[0].command, "pip3 cache purge");
+        assert_eq!(plan.skipped_sudo, 1);
+        assert_eq!(plan.moderate, 1);
     }
 }

@@ -1030,9 +1030,7 @@ VmRSS:    12345 kB
             Some("anajjmnhfmakkamckgeopokbjfkinihm".to_string())
         );
         assert_eq!(
-            extract_chrome_app_id(
-                "google-chrome --app-id anajjmnhfmakkamckgeopokbjfkinihm --foo"
-            ),
+            extract_chrome_app_id("google-chrome --app-id anajjmnhfmakkamckgeopokbjfkinihm --foo"),
             Some("anajjmnhfmakkamckgeopokbjfkinihm".to_string())
         );
         assert_eq!(extract_chrome_app_id("google-chrome --app-id=bad"), None);

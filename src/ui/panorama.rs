@@ -569,7 +569,11 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
 
                 clear_list_box(&size_detail_list);
                 size_summary_row.set_subtitle(pick(lang, "计算中...", "Calculating..."));
-                size_targets_row.set_subtitle(pick(lang, "准备统计目标...", "Preparing targets..."));
+                size_targets_row.set_subtitle(pick(
+                    lang,
+                    "准备统计目标...",
+                    "Preparing targets...",
+                ));
                 size_targets_row.set_tooltip_text(None);
                 dsz.set_subtitle(pick(lang, "计算中，请稍候...", "Calculating..."));
                 dsz.set_sensitive(false);
@@ -637,7 +641,10 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                                         } else {
                                             let subtitle = match lang {
                                                 Language::ZhCn => {
-                                                    format!("{} 个路径（悬停查看）", scan.targets.len())
+                                                    format!(
+                                                        "{} 个路径（悬停查看）",
+                                                        scan.targets.len()
+                                                    )
                                                 }
                                                 Language::En => format!(
                                                     "{} path(s) (hover to view)",
@@ -687,40 +694,39 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                                             }
                                         } else {
                                             let summary = format_size(scan.total_size);
-                                            let summary_text = if scan.truncated
-                                                || scan.permission_denied
-                                            {
-                                                match lang {
-                                                    Language::ZhCn => {
-                                                        let mut reasons = Vec::new();
-                                                        if scan.truncated {
-                                                            reasons.push("文件过多");
+                                            let summary_text =
+                                                if scan.truncated || scan.permission_denied {
+                                                    match lang {
+                                                        Language::ZhCn => {
+                                                            let mut reasons = Vec::new();
+                                                            if scan.truncated {
+                                                                reasons.push("文件过多");
+                                                            }
+                                                            if scan.permission_denied {
+                                                                reasons.push("权限不足");
+                                                            }
+                                                            format!(
+                                                                "{summary}（可能不完整：{}）",
+                                                                reasons.join("、")
+                                                            )
                                                         }
-                                                        if scan.permission_denied {
-                                                            reasons.push("权限不足");
+                                                        Language::En => {
+                                                            let mut reasons = Vec::new();
+                                                            if scan.truncated {
+                                                                reasons.push("too many files");
+                                                            }
+                                                            if scan.permission_denied {
+                                                                reasons.push("permission denied");
+                                                            }
+                                                            format!(
+                                                                "{summary} (may be incomplete: {})",
+                                                                reasons.join(", ")
+                                                            )
                                                         }
-                                                        format!(
-                                                            "{summary}（可能不完整：{}）",
-                                                            reasons.join("、")
-                                                        )
                                                     }
-                                                    Language::En => {
-                                                        let mut reasons = Vec::new();
-                                                        if scan.truncated {
-                                                            reasons.push("too many files");
-                                                        }
-                                                        if scan.permission_denied {
-                                                            reasons.push("permission denied");
-                                                        }
-                                                        format!(
-                                                            "{summary} (may be incomplete: {})",
-                                                            reasons.join(", ")
-                                                        )
-                                                    }
-                                                }
-                                            } else {
-                                                summary
-                                            };
+                                                } else {
+                                                    summary
+                                                };
                                             size_summary_row.set_subtitle(&summary_text);
                                             dsz.set_subtitle(&summary_text);
 
@@ -752,8 +758,11 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                                         size_targets_row.set_tooltip_text(None);
                                     }
                                     Err(_) => {
-                                        size_summary_row
-                                            .set_subtitle(pick(lang, "统计失败", "Failed"));
+                                        size_summary_row.set_subtitle(pick(
+                                            lang,
+                                            "统计失败",
+                                            "Failed",
+                                        ));
                                         dsz.set_subtitle(pick(
                                             lang,
                                             "统计失败（可重试）",
@@ -1174,10 +1183,7 @@ fn format_duration_ms(ms: u64) -> String {
 
 fn format_size_scan_progress(progress: &SizeScanProgress, lang: Language) -> String {
     let elapsed = format_duration_ms(progress.elapsed_ms);
-    let eta = progress
-        .eta_ms
-        .filter(|v| *v > 0)
-        .map(format_duration_ms);
+    let eta = progress.eta_ms.filter(|v| *v > 0).map(format_duration_ms);
 
     match progress.phase {
         SizeScanPhase::PreparingTargets => match lang {
@@ -1325,9 +1331,7 @@ async fn calculate_package_size_details(
             Some(completed_target_ms_total / u64::from(completed_target_count))
         };
         let eta_ms = avg_ms.map(|avg| {
-            avg.saturating_mul(
-                u64::try_from(targets_total.saturating_sub(idx)).unwrap_or(u64::MAX),
-            )
+            avg.saturating_mul(u64::try_from(targets_total.saturating_sub(idx)).unwrap_or(u64::MAX))
         });
 
         let _ = progress_tx.try_send(SizeScanEvent::Progress {
@@ -1357,10 +1361,10 @@ async fn calculate_package_size_details(
         let scanned = tokio::task::spawn_blocking(move || {
             collect_target_files(&path, recursive, &token_for_worker, |file_count| {
                 let eta_ms = avg_ms_for_progress.map(|avg| {
-                    avg.saturating_mul(u64::try_from(
-                        targets_total_for_progress.saturating_sub(idx_for_progress),
+                    avg.saturating_mul(
+                        u64::try_from(targets_total_for_progress.saturating_sub(idx_for_progress))
+                            .unwrap_or(u64::MAX),
                     )
-                    .unwrap_or(u64::MAX))
                 });
 
                 let _ = tx_for_progress.try_send(SizeScanEvent::Progress {
@@ -2188,10 +2192,7 @@ async fn collect_candidate_paths(pkg: &SelectedPackage) -> Vec<SizePathCandidate
             }
 
             if let Ok(home) = std::env::var("HOME") {
-                let user_data = format!(
-                    "{}/.var/app/{app_id}",
-                    home.trim_end_matches('/')
-                );
+                let user_data = format!("{}/.var/app/{app_id}", home.trim_end_matches('/'));
                 let p = Path::new(&user_data);
                 if p.exists() && p.is_dir() {
                     targets.push(SizePathCandidate {

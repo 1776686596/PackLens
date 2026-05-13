@@ -96,12 +96,14 @@ fn parse_apt_simulate_freed_bytes(stdout: &str) -> Option<u64> {
         let tokens: Vec<&str> = l.split_whitespace().collect();
 
         for win in tokens.windows(2) {
-            let a = win[0].trim_matches(|c: char| !c.is_ascii_alphanumeric() && c != '.' && c != ',');
+            let a =
+                win[0].trim_matches(|c: char| !c.is_ascii_alphanumeric() && c != '.' && c != ',');
             let b = win[1].trim_matches(|c: char| !c.is_ascii_alphanumeric());
             if a.is_empty() || b.is_empty() {
                 continue;
             }
-            if let Some(bytes) = crate::adapters::util::parse_human_size_to_bytes(&format!("{a} {b}"))
+            if let Some(bytes) =
+                crate::adapters::util::parse_human_size_to_bytes(&format!("{a} {b}"))
             {
                 if bytes > 0 {
                     return Some(bytes);

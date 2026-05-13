@@ -30,7 +30,7 @@ impl CacheAdapter for CargoCacheAdapter {
 
     fn suggest_cleanups(&self) -> impl Future<Output = Vec<CleanupSuggestion>> + Send {
         async move {
-            if !command_exists("cargo") {
+            if !cargo_cache_run_supported() {
                 return Vec::new();
             }
             let home = std::env::var("HOME").unwrap_or_default();
@@ -58,6 +58,14 @@ impl CacheAdapter for CargoCacheAdapter {
     }
 }
 
+fn cargo_cache_run_supported() -> bool {
+    cargo_cache_run_supported_with(command_exists("cargo"), command_exists("cargo-cache"))
+}
+
+fn cargo_cache_run_supported_with(has_cargo: bool, has_cargo_cache: bool) -> bool {
+    has_cargo && has_cargo_cache
+}
+
 fn dir_size(path: &str) -> u64 {
     walkdir::WalkDir::new(path)
         .follow_links(false)
@@ -67,4 +75,17 @@ fn dir_size(path: &str) -> u64 {
         .filter(|m| m.is_file())
         .map(|m| m.len())
         .sum()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cargo_cache_command_requires_both_binaries() {
+        assert!(!cargo_cache_run_supported_with(false, false));
+        assert!(!cargo_cache_run_supported_with(true, false));
+        assert!(!cargo_cache_run_supported_with(false, true));
+        assert!(cargo_cache_run_supported_with(true, true));
+    }
 }

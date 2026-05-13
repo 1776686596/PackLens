@@ -56,7 +56,9 @@ impl CacheAdapter for JournalCacheAdapter {
 }
 
 async fn journal_disk_usage_bytes() -> Option<u64> {
-    let output = run_command("journalctl", &["--disk-usage"], 15).await.ok()?;
+    let output = run_command("journalctl", &["--disk-usage"], 15)
+        .await
+        .ok()?;
     output
         .stdout
         .split_whitespace()

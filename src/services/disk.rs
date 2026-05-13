@@ -125,8 +125,8 @@ pub async fn scan_all(
         .collect();
 
     let include_root_fs = mode == ScanMode::Full && roots.iter().any(|root| root == "/");
-    let total_roots = u32::try_from(fast_roots.len() + if include_root_fs { 1 } else { 0 })
-        .unwrap_or(u32::MAX);
+    let total_roots =
+        u32::try_from(fast_roots.len() + if include_root_fs { 1 } else { 0 }).unwrap_or(u32::MAX);
 
     let mut folder_usage: HashMap<String, Vec<FolderUsage>> = HashMap::new();
     let mut roots_done = 0_u32;
@@ -150,8 +150,7 @@ pub async fn scan_all(
             total: total_roots,
             scanned_files: 0,
             elapsed_ms: started.elapsed().as_millis() as u64,
-            eta_ms: avg_root_ms
-                .map(|avg| avg.saturating_mul(u64::from(remaining_roots))),
+            eta_ms: avg_root_ms.map(|avg| avg.saturating_mul(u64::from(remaining_roots))),
         });
 
         let root_started = Instant::now();
@@ -183,11 +182,11 @@ pub async fn scan_all(
                 }));
             })
         })
-            .await
-            .unwrap_or_else(|e| {
-                tracing::warn!("disk analyzer worker failed: {e}");
-                HashMap::new()
-            });
+        .await
+        .unwrap_or_else(|e| {
+            tracing::warn!("disk analyzer worker failed: {e}");
+            HashMap::new()
+        });
 
         if token.is_cancelled() {
             return;
@@ -214,7 +213,12 @@ pub async fn scan_all(
             total: total_roots,
             scanned_files: 0,
             elapsed_ms: started.elapsed().as_millis() as u64,
-            eta_ms: estimate_eta_ms(completed_root_ms_total, completed_root_count, total_roots, roots_done),
+            eta_ms: estimate_eta_ms(
+                completed_root_ms_total,
+                completed_root_count,
+                total_roots,
+                roots_done,
+            ),
         });
     }
 
@@ -249,8 +253,7 @@ pub async fn scan_all(
             total: total_roots,
             scanned_files: 0,
             elapsed_ms: started.elapsed().as_millis() as u64,
-            eta_ms: avg_root_ms
-                .map(|avg| avg.saturating_mul(u64::from(remaining_roots))),
+            eta_ms: avg_root_ms.map(|avg| avg.saturating_mul(u64::from(remaining_roots))),
         });
 
         let root_started = Instant::now();
@@ -282,11 +285,11 @@ pub async fn scan_all(
                 }));
             })
         })
-            .await
-            .unwrap_or_else(|e| {
-                tracing::warn!("disk analyzer worker failed: {e}");
-                HashMap::new()
-            });
+        .await
+        .unwrap_or_else(|e| {
+            tracing::warn!("disk analyzer worker failed: {e}");
+            HashMap::new()
+        });
 
         if token.is_cancelled() {
             return;
@@ -315,7 +318,12 @@ pub async fn scan_all(
             total: total_roots,
             scanned_files: 0,
             elapsed_ms: started.elapsed().as_millis() as u64,
-            eta_ms: estimate_eta_ms(completed_root_ms_total, completed_root_count, total_roots, roots_done),
+            eta_ms: estimate_eta_ms(
+                completed_root_ms_total,
+                completed_root_count,
+                total_roots,
+                roots_done,
+            ),
         });
 
         let final_event = DiskSnapshot {

@@ -80,11 +80,8 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                     capitalize(&rt.language),
                     &rt.version
                 ));
-                let subtitle_text = glib::markup_escape_text(&format!(
-                    "{} ({})",
-                    &rt.path,
-                    &rt.install_method
-                ));
+                let subtitle_text =
+                    glib::markup_escape_text(&format!("{} ({})", &rt.path, &rt.install_method));
                 let row = adw::ActionRow::builder()
                     .title(title_text)
                     .subtitle(subtitle_text)
@@ -119,7 +116,10 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                 let mut by_manager: BTreeMap<&str, Vec<&crate::models::GlobalPackageInfo>> =
                     BTreeMap::new();
                 for pkg in &event.global_packages {
-                    by_manager.entry(pkg.manager.as_str()).or_default().push(pkg);
+                    by_manager
+                        .entry(pkg.manager.as_str())
+                        .or_default()
+                        .push(pkg);
                 }
 
                 for (manager, mut pkgs) in by_manager {

@@ -388,6 +388,7 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
     let pending_targets = Rc::new(RefCell::new(Vec::<u32>::new()));
     let render_seq = Rc::new(Cell::new(1_u64));
     let scan_in_progress = Rc::new(Cell::new(false));
+    let terminate_in_progress = Rc::new(Cell::new(false));
 
     let update_overview: Rc<dyn Fn()> = Rc::new({
         let memory_state = memory_state.clone();
@@ -613,8 +614,9 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
         let progress_badge = progress_badge.clone();
         let boost_btn = boost_btn.clone();
         let scan_in_progress = scan_in_progress.clone();
+        let terminate_in_progress = terminate_in_progress.clone();
         move || {
-            if scan_in_progress.get() || token.is_cancelled() {
+            if scan_in_progress.get() || terminate_in_progress.get() || token.is_cancelled() {
                 return;
             }
 
@@ -813,13 +815,16 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
         let rebuild_list = rebuild_list.clone();
         let update_summary = update_summary.clone();
         let refresh_scan = refresh_scan.clone();
+        let terminate_in_progress = terminate_in_progress.clone();
+        let scan_in_progress = scan_in_progress.clone();
         move |_| {
             confirm_revealer.set_reveal_child(false);
             let signal = pending_signal.get();
             let targets = pending_targets.borrow().clone();
-            if targets.is_empty() {
+            if targets.is_empty() || terminate_in_progress.get() {
                 return;
             }
+            terminate_in_progress.set(true);
 
             // 执行期间禁用交互，避免重复触发或引入并发结束操作。
             rescan_btn.set_sensitive(false);
@@ -847,6 +852,8 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
             let rebuild_list = rebuild_list.clone();
             let update_summary = update_summary.clone();
             let refresh_scan = refresh_scan.clone();
+            let terminate_in_progress = terminate_in_progress.clone();
+            let scan_in_progress = scan_in_progress.clone();
             glib::spawn_future_local(async move {
                 while let Ok(event) = run_rx.recv().await {
                     match event {
@@ -881,10 +888,10 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                             banner.set_title(&title);
                             banner.set_revealed(true);
 
+                            terminate_in_progress.set(false);
                             rescan_btn.set_sensitive(true);
                             search_entry.set_sensitive(true);
                             scope_toggle.set_sensitive(true);
-                            boost_btn.set_sensitive(true);
                             progress_badge.set_label(pick(lang, "执行完成", "Done"));
 
                             if !removed_pids.is_empty() {
@@ -908,6 +915,17 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                         }
                     }
                 }
+
+                terminate_in_progress.set(false);
+                rescan_btn.set_sensitive(true);
+                search_entry.set_sensitive(true);
+                scope_toggle.set_sensitive(true);
+                boost_btn.set_sensitive(boost_button_sensitive(
+                    scan_in_progress.get(),
+                    terminate_in_progress.get(),
+                    processes_state.borrow().len(),
+                ));
+                update_summary();
             });
         }
     });
@@ -921,6 +939,7 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
         let stack = stack.clone();
         let boost_btn = boost_btn.clone();
         let scan_in_progress = scan_in_progress.clone();
+        let terminate_in_progress = terminate_in_progress.clone();
         let update_overview = update_overview.clone();
         let rebuild_list = rebuild_list.clone();
         let update_summary = update_summary.clone();
@@ -946,7 +965,11 @@ pub fn build(token: tokio_util::sync::CancellationToken, lang: Language) -> adw:
                 update_summary();
 
                 progress_badge.set_label(pick(lang, "已更新", "Updated"));
-                boost_btn.set_sensitive(!processes_state.borrow().is_empty());
+                boost_btn.set_sensitive(boost_button_sensitive(
+                    scan_in_progress.get(),
+                    terminate_in_progress.get(),
+                    processes_state.borrow().len(),
+                ));
                 if processes_state.borrow().is_empty() {
                     stack.set_visible_child_name("empty");
                 } else {
@@ -1081,6 +1104,14 @@ fn selected_pids(
         .collect();
     pids.sort_unstable();
     pids
+}
+
+fn boost_button_sensitive(
+    scan_in_progress: bool,
+    terminate_in_progress: bool,
+    process_count: usize,
+) -> bool {
+    !scan_in_progress && !terminate_in_progress && process_count > 0
 }
 
 fn confirm_text(pids: &[u32], signal: TerminateSignal, lang: Language) -> String {
@@ -1266,8 +1297,7 @@ fn render_process_list(
             let allowed = process_manager::can_terminate(current_uid, self_pid, &p);
 
             let title_text = glib::markup_escape_text(&format!("{} (PID {})", p.name, p.pid));
-            let subtitle_text =
-                glib::markup_escape_text(&process_subtitle(&p, allowed, lang));
+            let subtitle_text = glib::markup_escape_text(&process_subtitle(&p, allowed, lang));
             let row = adw::ActionRow::builder()
                 .title(title_text)
                 .subtitle(subtitle_text)
@@ -1479,5 +1509,13 @@ mod tests {
         assert!(matches_query(&p, "chrome"));
         assert!(matches_query(&p, "RENDERER"));
         assert!(!matches_query(&p, "firefox"));
+    }
+
+    #[test]
+    fn boost_button_stays_disabled_while_refresh_scan_is_running() {
+        assert!(!boost_button_sensitive(true, false, 1));
+        assert!(!boost_button_sensitive(false, true, 1));
+        assert!(boost_button_sensitive(false, false, 1));
+        assert!(!boost_button_sensitive(false, false, 0));
     }
 }
