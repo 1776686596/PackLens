@@ -1,6 +1,19 @@
 # PackLens
 
-Native Linux software inventory, disk cleanup, and process inspection.
+<p align="center">
+  <img src="static/packlens-hero.png" alt="PackLens software inventory, disk cleanup, and process inspection overview" width="100%">
+</p>
+
+<p align="center">
+  <strong>Native Linux software inventory, disk cleanup, and process inspection.</strong>
+</p>
+
+<p align="center">
+  <a href="#功能">功能</a> ·
+  <a href="#截图">截图</a> ·
+  <a href="#下载与安装无需编译">下载与安装</a> ·
+  <a href="#构建与运行">构建与运行</a>
+</p>
 
 PackLens 是一个 Linux 原生 GUI 工具。它把常见软件来源（apt/snap/flatpak/桌面入口）、
 开发环境（Python/Node/Rust/Java）、磁盘/缓存清理和后台进程检查整合到一个应用里，
